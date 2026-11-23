@@ -125,7 +125,7 @@ Archivo semilla: `src/data/seed-usuarios.json`. Las otras historias lo leen con
   "correo": "rmendoza@aloe.ulima.edu.pe",   // estudiante: @aloe.ulima.edu.pe · encargado: @ulima.edu.pe
   "rol": "estudiante",                      // "estudiante" | "encargado"
   "estado": "activo",                       // "activo" | "por_verificar" | "pendiente_aprobacion" | "bloqueado"
-  "contrasenaHash": "…",                    // SHA-256 de "id:contraseña" (bcrypt en la 2.ª entrega)
+  "contrasenaHash": "…",                    // bcrypt (solo en el servidor; la API nunca lo devuelve)
   "codigo": "20213456",                     // solo estudiante
   "carrera": "Ingeniería Electrónica",      // solo estudiante
   "ciclo": 6,                               // solo estudiante
