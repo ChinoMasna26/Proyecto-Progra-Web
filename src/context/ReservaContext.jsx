@@ -1,11 +1,4 @@
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import * as servicio from '../services/reservasService.js'
 import { useNotificacion } from './NotificacionContext.jsx'
 import { useSesion } from './SesionContext.jsx'
@@ -20,25 +13,34 @@ export function ReservaProvider({ children }) {
   const [cargando, setCargando] = useState(true)
   const [error, setError] = useState(null)
   const { aviso, error: notificarError, exito } = useNotificacion()
-  const { usuario } = useSesion()
+  const { usuario, esEncargado } = useSesion()
 
   const recargar = useCallback(async () => {
     const [listaEquipos, listaReservas, listaOcupacion, enEspera] = await Promise.all([
       servicio.listarEquiposReservables(),
       servicio.listarReservas(usuario.id),
       servicio.listarReservasOcupacion(),
-      servicio.listarListaEspera(usuario.id),
+      esEncargado ? servicio.listarEsperaPorEquipo() : servicio.listarListaEspera(usuario.id),
     ])
     setEquipos(listaEquipos)
     setReservas(listaReservas)
     setReservasOcupacion(listaOcupacion)
     setListaEspera(enEspera)
     setError(null)
-  }, [usuario.id])
+  }, [usuario.id, esEncargado])
 
   useEffect(() => {
     let vigente = true
     async function cargar() {
+      // Sin sesión no hay reservas que mostrar (y la API las pide con sesión).
+      if (!usuario.id) {
+        setEquipos([])
+        setReservas([])
+        setReservasOcupacion([])
+        setListaEspera([])
+        setCargando(false)
+        return
+      }
       setCargando(true)
       try {
         const convertidas = await servicio.convertirReservasProximas()
@@ -50,7 +52,7 @@ export function ReservaProvider({ children }) {
           servicio.listarEquiposReservables(),
           servicio.listarReservas(usuario.id),
           servicio.listarReservasOcupacion(),
-          servicio.listarListaEspera(usuario.id),
+          esEncargado ? servicio.listarEsperaPorEquipo() : servicio.listarListaEspera(usuario.id),
         ])
         if (vigente) {
           setEquipos(listaEquipos)
@@ -72,16 +74,14 @@ export function ReservaProvider({ children }) {
     return () => {
       vigente = false
     }
-  }, [aviso, notificarError, usuario.id])
+  }, [aviso, notificarError, usuario.id, esEncargado])
 
   const escribir = useCallback(
     async (operacion, mensajeExito) => {
       try {
         const resultado = await operacion()
         await recargar()
-        exito(
-          typeof mensajeExito === 'function' ? mensajeExito(resultado) : mensajeExito,
-        )
+        exito(typeof mensajeExito === 'function' ? mensajeExito(resultado) : mensajeExito)
         return { ok: true, datos: resultado }
       } catch (e) {
         notificarError(e.message ?? 'No pudimos completar la operación.')
@@ -116,16 +116,7 @@ export function ReservaProvider({ children }) {
               : 'Reserva cancelada.',
         ),
     }),
-    [
-      cargando,
-      equipos,
-      error,
-      listaEspera,
-      reservas,
-      reservasOcupacion,
-      usuario.id,
-      escribir,
-    ],
+    [cargando, equipos, error, listaEspera, reservas, reservasOcupacion, usuario.id, escribir],
   )
 
   return <ReservaContext.Provider value={valor}>{children}</ReservaContext.Provider>

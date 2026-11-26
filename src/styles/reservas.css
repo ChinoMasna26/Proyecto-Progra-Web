@@ -406,3 +406,71 @@
     font-size: var(--t-base);
   }
 }
+
+/* Vista 6.4 del encargado: colas por equipo */
+.espera-grupos {
+  display: grid;
+  gap: var(--e-4);
+}
+
+.espera-grupo-titulo {
+  padding: 0.8rem 1rem;
+  border-bottom: 1px solid var(--linea);
+  font-size: var(--t-md);
+  font-weight: 600;
+}
+
+.espera-filas {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.espera-fila {
+  display: grid;
+  grid-template-columns: 2rem minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: var(--e-3);
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--linea);
+}
+
+.espera-fila:last-child {
+  border-bottom: 0;
+}
+
+.espera-fila .espera-posicion {
+  width: 1.8rem;
+  height: 1.8rem;
+}
+
+.espera-marca {
+  padding: 0.15rem 0.5rem;
+  border-radius: var(--radio-ficha);
+  background: var(--disponible-tenue);
+  color: var(--disponible);
+  font-size: var(--t-xs);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.espera-marca--deuda {
+  background: var(--peligro-tenue);
+  color: var(--peligro);
+}
+
+.espera-marca--pausa {
+  background: var(--mantenimiento-tenue);
+  color: #8a5c14;
+}
+
+.espera-nota {
+  margin: 0;
+  border-radius: 0 0 var(--radio-panel) var(--radio-panel);
+}
+
+@media (max-width: 620px) {
+  .espera-fila {
+    grid-template-columns: 2rem minmax(0, 1fr);
+  }
+}
