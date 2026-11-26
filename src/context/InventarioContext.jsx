@@ -4,7 +4,15 @@
  * Es el único punto que conversa con la capa de servicios. Los componentes de
  * interfaz no importan `inventarioService`: piden lo que necesitan a este Context.
  */
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer } from 'react'
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+} from 'react'
 import * as servicio from '../services/inventarioService.js'
 import { etiquetaEstado } from '../domain/catalogos.js'
 import { estadoInicial, inventarioReducer } from './inventarioReducer.js'
@@ -29,7 +37,11 @@ export function InventarioProvider({ children }) {
     }
   }, [])
 
+  // El inventario completo solo lo pide el encargado; la ficha pública va por su cuenta.
+  const esEncargado = usuario.rol === 'encargado'
+
   useEffect(() => {
+    if (!esEncargado) return undefined
     let vigente = true
     dispatch({ tipo: 'CARGANDO' })
     servicio
@@ -39,11 +51,11 @@ export function InventarioProvider({ children }) {
     return () => {
       vigente = false
     }
-  }, [filtros, version])
+  }, [filtros, version, esEncargado])
 
   useEffect(() => {
-    cargarResumen()
-  }, [cargarResumen, version])
+    if (esEncargado) cargarResumen()
+  }, [cargarResumen, version, esEncargado])
 
   /** Envuelve una escritura: notifica el resultado y refresca lo que haga falta. */
   const escribir = useCallback(
@@ -63,9 +75,24 @@ export function InventarioProvider({ children }) {
     [notificacion],
   )
 
+  // Las categorías vienen de la API (tabla categorias). Las necesitan el formulario y los
+  // filtros del inventario y del catálogo, así que se piden para todos, con o sin sesión.
+  const [categorias, setCategorias] = useState([])
+  useEffect(() => {
+    let vigente = true
+    servicio
+      .listarCategorias()
+      .then((lista) => vigente && setCategorias(lista))
+      .catch(() => vigente && setCategorias([]))
+    return () => {
+      vigente = false
+    }
+  }, [])
+
   const valor = useMemo(
     () => ({
       ...estado,
+      categorias,
 
       // consultas
       cambiarFiltros: (cambios) => dispatch({ tipo: 'CAMBIAR_FILTROS', filtros: cambios }),
@@ -132,7 +159,7 @@ export function InventarioProvider({ children }) {
       restablecerSemilla: () =>
         escribir(servicio.restablecerSemilla, 'Inventario restablecido a los datos semilla.'),
     }),
-    [estado, escribir, usuario.id],
+    [estado, categorias, escribir, usuario.id],
   )
 
   return <InventarioContext.Provider value={valor}>{children}</InventarioContext.Provider>

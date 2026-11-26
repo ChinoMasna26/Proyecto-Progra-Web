@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
-import { CATEGORIAS, ESTADOS_UNIDAD } from '../../domain/catalogos.js'
+import { ESTADOS_UNIDAD } from '../../domain/catalogos.js'
+import { useInventario } from '../../context/InventarioContext.jsx'
 import { useRetardo } from '../../hooks/useRetardo.js'
 
 /** Filtros por categoría y estado, búsqueda por código y ordenamiento. */
 export function FiltrosInventario({ filtros, alCambiar }) {
+  const { categorias } = useInventario() // vienen de la API (tabla categorias)
   const [texto, setTexto] = useState(filtros.texto)
   const textoRetardado = useRetardo(texto, 320)
 
@@ -31,9 +33,9 @@ export function FiltrosInventario({ filtros, alCambiar }) {
           onChange={(e) => alCambiar({ categoria: e.target.value })}
         >
           <option value="todas">Categoría: todas</option>
-          {CATEGORIAS.map((c) => (
-            <option key={c.valor} value={c.valor}>
-              Categoría: {c.etiqueta}
+          {categorias.map((c) => (
+            <option key={c.id} value={c.id}>
+              Categoría: {c.nombre}
             </option>
           ))}
         </select>
