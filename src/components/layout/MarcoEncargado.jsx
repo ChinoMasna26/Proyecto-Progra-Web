@@ -1,6 +1,7 @@
 import { NavLink, Link } from 'react-router-dom'
-import { useInventario } from '../../context/InventarioContext.jsx'
 import { usePrestamos } from '../../context/PrestamosContext.jsx'
+import { useInventario } from '../../context/InventarioContext.jsx'
+import { useReservas } from '../../context/ReservaContext.jsx'
 import { useSesion } from '../../context/SesionContext.jsx'
 import { ALMACEN } from '../../domain/catalogos.js'
 import { MenuUsuario } from './MenuUsuario.jsx'
@@ -27,8 +28,14 @@ function Enlace({ a, children, cuenta, alerta = false }) {
 export function MarcoEncargado({ children }) {
   const { resumen } = useInventario()
   const { almacen } = useSesion()
-  const externos = resumen?.externos
   const { contadores } = usePrestamos()
+  // La cola real de la HU-6 (suma de estudiantes en espera de todos los equipos).
+  // Los contadores salen de la API: reservas activas y estudiantes en la cola (HU-6).
+  const { listaEspera, reservasOcupacion, cargando: cargandoReservas } = useReservas()
+  const enEspera = cargandoReservas
+    ? undefined
+    : listaEspera.reduce((total, grupo) => total + (grupo.reservas?.length ?? 0), 0)
+  const reservasActivas = cargandoReservas ? undefined : reservasOcupacion.length
 
   return (
     <div className="marco">
@@ -90,17 +97,15 @@ export function MarcoEncargado({ children }) {
           <div className="riel-grupo">
             <p className="riel-titulo">Complementarios</p>
             <div className="riel-nav">
-              <Enlace a="/reservas" cuenta={externos?.reservas}>
+              <Enlace a="/reservas" cuenta={reservasActivas}>
                 Reservas
               </Enlace>
               <Enlace a="/mis-reservas">Mis reservas</Enlace>
-              <Enlace a="/lista-espera" cuenta={externos?.listaEspera}>
+              <Enlace a="/lista-espera" cuenta={enEspera}>
                 Lista de espera
               </Enlace>
               <Enlace a="/tablero">Tablero</Enlace>
-              <Enlace a="/usuarios" cuenta={externos?.usuarios}>
-                Usuarios
-              </Enlace>
+              <Enlace a="/usuarios">Usuarios</Enlace>
             </div>
           </div>
         </nav>

@@ -303,9 +303,9 @@ export default function App() {
                       <Route
                         path="/lista-espera"
                         element={
-                          <Encargado>
+                          <ConSesion>
                             <ListaEspera />
-                          </Encargado>
+                          </ConSesion>
                         }
                       />
 

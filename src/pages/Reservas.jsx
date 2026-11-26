@@ -29,9 +29,9 @@ function fechaBonita(valor) {
 }
 
 function diasEntre(inicio, fin) {
-  return Math.round(
-    (Date.parse(`${fin}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000,
-  ) + 1
+  return (
+    Math.round((Date.parse(`${fin}T00:00:00Z`) - Date.parse(`${inicio}T00:00:00Z`)) / 86400000) + 1
+  )
 }
 
 function fechaDentroDeReserva(fecha, reserva) {
@@ -116,8 +116,7 @@ export function Reservas() {
     const nuevosErrores = {}
     if (!equipoIdActual) nuevosErrores.equipo = 'Selecciona un equipo.'
     if (!fechaInicio) nuevosErrores.fechaInicio = 'Indica el inicio del rango.'
-    else if (fechaInicio < manana)
-      nuevosErrores.fechaInicio = 'La fecha de inicio debe ser futura.'
+    else if (fechaInicio < manana) nuevosErrores.fechaInicio = 'La fecha de inicio debe ser futura.'
     if (!fechaFin) nuevosErrores.fechaFin = 'Indica el fin del rango.'
     else if (fechaInicio && fechaFin < fechaInicio)
       nuevosErrores.fechaFin = 'Debe ser igual o posterior a la fecha de inicio.'
@@ -169,7 +168,9 @@ export function Reservas() {
           <div className="reservas-seccion-cabecera">
             <div>
               <h2>Ocupación por equipo</h2>
-              <p className="suave sm">El préstamo vigente sin fechas registradas se muestra como ocupado.</p>
+              <p className="suave sm">
+                El préstamo vigente sin fechas registradas se muestra como ocupado.
+              </p>
             </div>
             <div className="reservas-mes">
               <button
@@ -251,7 +252,9 @@ export function Reservas() {
                       <span className="calendario-numero">{dia.getDate()}</span>
                       <span className="calendario-estados">
                         {ocupacion.libres > 0 && (
-                          <span className="ocupacion ocupacion--libre">{ocupacion.libres} libres</span>
+                          <span className="ocupacion ocupacion--libre">
+                            {ocupacion.libres} libres
+                          </span>
                         )}
                         {ocupacion.reservadas > 0 && (
                           <span className="ocupacion ocupacion--reservada">
@@ -272,9 +275,15 @@ export function Reservas() {
                 })}
               </div>
               <div className="reservas-leyenda" aria-label="Estados de ocupación">
-                <span><i className="leyenda-punto leyenda-punto--libre" /> Libre</span>
-                <span><i className="leyenda-punto leyenda-punto--reservada" /> Reservado</span>
-                <span><i className="leyenda-punto leyenda-punto--prestada" /> Prestado</span>
+                <span>
+                  <i className="leyenda-punto leyenda-punto--libre" /> Libre
+                </span>
+                <span>
+                  <i className="leyenda-punto leyenda-punto--reservada" /> Reservado
+                </span>
+                <span>
+                  <i className="leyenda-punto leyenda-punto--prestada" /> Prestado
+                </span>
               </div>
             </>
           )}
@@ -283,8 +292,8 @@ export function Reservas() {
         <section className="panel panel-cuerpo reservas-formulario">
           <h2>Solicitar reserva</h2>
           <p className="prosa sm reservas-intro">
-            La reserva ocupa una unidad disponible para el rango indicado. Si todas están comprometidas,
-            ingresarás a la lista de espera.
+            La reserva ocupa una unidad disponible para el rango indicado. Si todas están
+            comprometidas, ingresarás a la lista de espera.
           </p>
           {errorOperacion && <div className="aviso aviso--error">{errorOperacion}</div>}
           <form onSubmit={enviarReserva} noValidate>
@@ -334,7 +343,8 @@ export function Reservas() {
               <textarea
                 {...atributosControl('motivo-reserva', {
                   error: errores.motivo,
-                  ayuda: 'Se incluirá en la solicitud de préstamo que se genere al acercarse la fecha.',
+                  ayuda:
+                    'Se incluirá en la solicitud de préstamo que se genere al acercarse la fecha.',
                 })}
                 value={motivo}
                 onChange={(evento) => setMotivo(evento.target.value)}
@@ -356,7 +366,9 @@ export function Reservas() {
               {guardando ? 'Guardando reserva…' : 'Solicitar reserva'}
             </button>
             {!usuario.id && (
-              <p className="campo-error" role="alert">Inicia sesión para reservar un equipo.</p>
+              <p className="campo-error" role="alert">
+                Inicia sesión para reservar un equipo.
+              </p>
             )}
           </form>
         </section>
@@ -374,9 +386,7 @@ const ESTADOS = {
 
 export function EstadoReserva({ estado }) {
   return (
-    <span className={`reserva-estado reserva-estado--${estado}`}>
-      {ESTADOS[estado] ?? estado}
-    </span>
+    <span className={`reserva-estado reserva-estado--${estado}`}>{ESTADOS[estado] ?? estado}</span>
   )
 }
 
@@ -400,7 +410,9 @@ export function MisReservas() {
       <div className="cabecera-vista">
         <div>
           <h1>Mis reservas</h1>
-          <p className="sub">Consulta el estado de tus reservas y cancela las que aún no se han convertido.</p>
+          <p className="sub">
+            Consulta el estado de tus reservas y cancela las que aún no se han convertido.
+          </p>
         </div>
       </div>
       <NavegacionReservas />
@@ -429,7 +441,9 @@ export function MisReservas() {
         ) : filtradas.length === 0 ? (
           <EstadoVacio
             marca="□"
-            titulo={filtro === 'todas' ? 'Todavía no tienes reservas' : 'No hay reservas con este estado'}
+            titulo={
+              filtro === 'todas' ? 'Todavía no tienes reservas' : 'No hay reservas con este estado'
+            }
             descripcion="Las reservas que solicites aparecerán aquí."
           />
         ) : (
@@ -483,7 +497,86 @@ export function MisReservas() {
   )
 }
 
+/** Vista 6.4 del encargado: las colas de espera de todo el almacén, por equipo. */
+function ListaEsperaEncargado() {
+  const { listaEspera: grupos, cargando, error } = useReservas()
+  const enCola = grupos.reduce((total, grupo) => total + grupo.reservas.length, 0)
+
+  return (
+    <div className="vista-reservas">
+      <div className="cabecera-vista">
+        <div>
+          <h1>Lista de espera</h1>
+          <p className="sub">
+            {cargando
+              ? 'Cargando…'
+              : `${grupos.length} ${grupos.length === 1 ? 'equipo' : 'equipos'} con reservas en espera · ${enCola} ${enCola === 1 ? 'estudiante' : 'estudiantes'} en cola`}
+          </p>
+        </div>
+      </div>
+      <NavegacionReservas />
+      {error && <div className="aviso aviso--error reservas-error">{error}</div>}
+      {cargando ? (
+        <section className="panel">
+          <Cargando filas={3} etiqueta="Cargando la lista de espera…" />
+        </section>
+      ) : grupos.length === 0 ? (
+        <section className="panel">
+          <EstadoVacio
+            marca="□"
+            titulo="No hay reservas en espera"
+            descripcion="Cuando un estudiante reserve un equipo sin unidades libres, aparecerá aquí en orden de llegada."
+          />
+        </section>
+      ) : (
+        <div className="espera-grupos">
+          {grupos.map((grupo) => (
+            <section
+              key={grupo.equipoId}
+              className="panel espera-grupo"
+              aria-label={grupo.equipoNombre}
+            >
+              <h2 className="espera-grupo-titulo">
+                {grupo.equipoNombre} · {grupo.reservas.length} en espera
+              </h2>
+              <ol className="espera-filas">
+                {grupo.reservas.map((reserva) => (
+                  <li key={reserva.id} className="espera-fila">
+                    <span className="espera-posicion">{reserva.posicion}</span>
+                    <span className="espera-nombre">{reserva.estudianteNombre}</span>
+                    <span className="codigo">
+                      {fechaBonita(reserva.fechaInicio)} – {fechaBonita(reserva.fechaFin)}
+                    </span>
+                    <span
+                      className={`espera-marca${reserva.conDeuda ? ' espera-marca--deuda' : grupo.enPausa ? ' espera-marca--pausa' : ''}`}
+                    >
+                      {reserva.conDeuda ? 'Con deuda' : grupo.enPausa ? 'En pausa' : 'En cola'}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+              {grupo.enPausa && (
+                <p className="aviso aviso--atencion espera-nota">
+                  {grupo.enMantenimiento.length
+                    ? `${grupo.enMantenimiento.length === 1 ? 'La unidad' : 'Las unidades'} ${grupo.enMantenimiento.join(', ')} ${grupo.enMantenimiento.length === 1 ? 'está' : 'están'} en mantenimiento: la cola no avanzará hasta que vuelva una unidad al inventario.`
+                    : 'Ninguna unidad está disponible: la cola avanzará cuando se devuelva una.'}
+                </p>
+              )}
+            </section>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 export function ListaEspera() {
+  const { esEncargado } = useSesion()
+  if (esEncargado) return <ListaEsperaEncargado />
+  return <ListaEsperaEstudiante />
+}
+
+function ListaEsperaEstudiante() {
   const { listaEspera, equipos, cargando, error } = useReservas()
   const nombres = new Map(equipos.map((equipo) => [equipo.id, equipo.nombre]))
 
@@ -492,7 +585,9 @@ export function ListaEspera() {
       <div className="cabecera-vista">
         <div>
           <h1>Lista de espera</h1>
-          <p className="sub">Tus solicitudes se ordenan por fecha de ingreso entre rangos que se cruzan.</p>
+          <p className="sub">
+            Tus solicitudes se ordenan por fecha de ingreso entre rangos que se cruzan.
+          </p>
         </div>
       </div>
       <NavegacionReservas />
