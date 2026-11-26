@@ -10,7 +10,6 @@ import { Cargando, EstadoVacio, Miniatura } from '../components/ui/Piezas.jsx'
 import { useInventario } from '../context/InventarioContext.jsx'
 import { ALMACEN, etiquetaCategoria } from '../domain/catalogos.js'
 import { useEquipo } from '../hooks/useEquipo.js'
-import semilla from '../data/seed-inventario.json'
 
 const PESTANAS = [
   { id: 'unidades', etiqueta: 'Unidades' },
@@ -22,7 +21,7 @@ const PESTANAS = [
 export function EquipoDetalle() {
   const { equipoId } = useParams()
   const [parametros, setParametros] = useSearchParams()
-  const { equipo, unidades, cargando, error } = useEquipo(equipoId)
+  const { equipo, unidades, usuarios, cargando, error } = useEquipo(equipoId)
   const {
     crearUnidad,
     actualizarUnidad,
@@ -79,7 +78,9 @@ export function EquipoDetalle() {
       <nav className="migas" aria-label="Ruta">
         <Link to="/inventario">Inventario</Link>
         <span aria-hidden="true">/</span>
-        <Link to={`/inventario?categoria=${equipo.categoria}`}>{etiquetaCategoria(equipo.categoria)}</Link>
+        <Link to={`/inventario?categoria=${equipo.categoria}`}>
+          {etiquetaCategoria(equipo.categoria)}
+        </Link>
         <span aria-hidden="true">/</span>
         <span>{equipo.nombre}</span>
       </nav>
@@ -139,7 +140,11 @@ export function EquipoDetalle() {
               titulo="Este equipo aún no tiene unidades"
               descripcion="Registra al menos una unidad con su código de inventario para que aparezca en el catálogo."
             >
-              <button type="button" className="boton" onClick={() => setUnidadEnForm({ unidad: null })}>
+              <button
+                type="button"
+                className="boton"
+                onClick={() => setUnidadEnForm({ unidad: null })}
+              >
                 Registrar la primera unidad
               </button>
             </EstadoVacio>
@@ -175,9 +180,7 @@ export function EquipoDetalle() {
         />
       )}
 
-      {pestana === 'historial' && (
-        <HistorialEquipo unidades={unidades} usuarios={semilla.usuarios} />
-      )}
+      {pestana === 'historial' && <HistorialEquipo unidades={unidades} usuarios={usuarios} />}
 
       {unidadEnForm && (
         <ModalUnidad

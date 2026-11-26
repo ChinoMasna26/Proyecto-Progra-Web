@@ -35,5 +35,11 @@ export function useEquipo(equipoId) {
     }
   }, [cargar, version])
 
-  return { equipo: datos?.equipo ?? null, unidades: datos?.unidades ?? [], cargando, error }
+  return {
+    equipo: datos?.equipo ?? null,
+    unidades: datos?.unidades ?? [],
+    usuarios: datos?.usuarios ?? [],
+    cargando,
+    error,
+  }
 }

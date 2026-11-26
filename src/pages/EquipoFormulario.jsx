@@ -5,7 +5,7 @@ import { PanelFotografias } from '../components/inventario/PanelFotografias.jsx'
 import { Campo, atributosControl } from '../components/ui/Campo.jsx'
 import { Cargando } from '../components/ui/Piezas.jsx'
 import { useInventario } from '../context/InventarioContext.jsx'
-import { CATEGORIAS, LIMITES } from '../domain/catalogos.js'
+import { LIMITES } from '../domain/catalogos.js'
 import { contarErrores, validarEquipo } from '../domain/validaciones.js'
 import { useFormulario } from '../hooks/useFormulario.js'
 
@@ -121,8 +121,10 @@ function Formulario({
   guardandoBorrador,
   setGuardandoBorrador,
 }) {
+  const { categorias } = useInventario() // vienen de la API (tabla categorias)
   const validar = useMemo(
-    () => (valores) => validarEquipo(valores, { equiposExistentes: claves, idActual: equipoId ?? null }),
+    () => (valores) =>
+      validarEquipo(valores, { equiposExistentes: claves, idActual: equipoId ?? null }),
     [claves, equipoId],
   )
 
@@ -196,9 +198,9 @@ function Formulario({
                     onBlur={() => tocar('categoria')}
                   >
                     <option value="">Elige una categoría</option>
-                    {CATEGORIAS.map((c) => (
-                      <option key={c.valor} value={c.valor}>
-                        {c.etiqueta}
+                    {categorias.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.nombre}
                       </option>
                     ))}
                   </select>
@@ -294,7 +296,10 @@ function Formulario({
           )}
 
           <div className="fila-fin" style={{ marginTop: '1.5rem' }}>
-            <Link to={esEdicion ? `/inventario/${equipoId}` : '/inventario'} className="boton boton--texto">
+            <Link
+              to={esEdicion ? `/inventario/${equipoId}` : '/inventario'}
+              className="boton boton--texto"
+            >
               Cancelar
             </Link>
             <button
