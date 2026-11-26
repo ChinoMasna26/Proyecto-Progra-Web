@@ -5,7 +5,7 @@
  * solo `usuario`, `rol`, `esEncargado` y `esEstudiante`; sin sesión, `usuario` es un
  * visitante con `id: null`, así ninguna vista tiene que preguntar si existe.
  */
-import { createContext, useCallback, useContext, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import * as servicio from '../services/cuentasService.js'
 import { useNotificacion } from './NotificacionContext.jsx'
 
@@ -26,6 +26,19 @@ export function SesionProvider({ children }) {
   const notificacion = useNotificacion()
   // La sesión guardada se lee al arrancar, sin esperar: así una recarga no saca al usuario.
   const [usuario, setUsuario] = useState(() => servicio.obtenerSesion() ?? VISITANTE)
+
+  // Al abrir la app se relee el usuario del servidor: si lo bloquearon o su token venció,
+  // la sesión se cierra; si cambió su deuda, se ve al instante.
+  useEffect(() => {
+    let vigente = true
+    servicio.refrescarSesion().then((actual) => {
+      if (!vigente) return
+      setUsuario((previo) => (previo.id ? (actual ?? VISITANTE) : previo))
+    })
+    return () => {
+      vigente = false
+    }
+  }, [])
 
   const iniciarSesion = useCallback(async (datos) => {
     try {
