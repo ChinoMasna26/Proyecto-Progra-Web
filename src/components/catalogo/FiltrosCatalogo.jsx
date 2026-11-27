@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { CATEGORIAS } from '../../domain/catalogos.js'
+import { useInventario } from '../../context/InventarioContext.jsx'
 import { OPCIONES_DISPONIBILIDAD, OPCIONES_DURACION } from '../../domain/solicitudes.js'
 
 /**
@@ -8,6 +8,7 @@ import { OPCIONES_DISPONIBILIDAD, OPCIONES_DURACION } from '../../domain/solicit
  * cuando los filtros aplicados cambian desde fuera, por ejemplo al quitar una etiqueta.
  */
 export function FiltrosCatalogo({ filtros, conteoCategorias = {}, alAplicar, alLimpiar }) {
+  const { categorias } = useInventario() // vienen de la API (tabla categorias)
   // En pantallas angostas el panel empieza plegado para que los equipos se vean primero.
   const [abierto, setAbierto] = useState(false)
   const activos =
@@ -56,15 +57,15 @@ export function FiltrosCatalogo({ filtros, conteoCategorias = {}, alAplicar, alL
 
         <fieldset className="filtros-grupo">
           <legend className="rotulo">Categoría</legend>
-          {CATEGORIAS.map((c) => (
-            <label key={c.valor} className="opcion">
+          {categorias.map((c) => (
+            <label key={c.id} className="opcion">
               <input
                 type="checkbox"
-                checked={borrador.categorias.includes(c.valor)}
-                onChange={() => alternarCategoria(c.valor)}
+                checked={borrador.categorias.includes(c.id)}
+                onChange={() => alternarCategoria(c.id)}
               />
               <span>
-                {c.etiqueta} <span className="suave">({conteoCategorias[c.valor] ?? 0})</span>
+                {c.nombre} <span className="suave">({conteoCategorias[c.id] ?? 0})</span>
               </span>
             </label>
           ))}
